@@ -1,0 +1,45 @@
+* {
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Fira Mono", "微軟正黑體", "Microsoft JhengHei", serif;
+}
+
+body {
+    background-color: #222;
+    color: #ddd;
+    font-size: 18px;
+}
+
+em {
+    color: #ddda;
+    font-size: 0.9em;
+}
+
+select, option, input {
+    font-size: 18px;
+}
+
+select, option, input, button {
+    background-color: #aaaf;
+}
+
+a, a:visited {
+    color: #0af;
+}
+
+a:hover {
+    color: #6bf;
+}
+
+a:active {
+    color: #08d;
+}
+
+#extra {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    font-size: 12px;
+    text-align: right;
+}
