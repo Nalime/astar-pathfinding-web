@@ -1,7 +1,5 @@
 const canvas = document.getElementsByTagName("canvas")[0];
 const ctx = canvas.getContext("2d");
-canvas.style.position = "absolute";
-
 const buttonWall = document.querySelector("#button-wall");
 const buttonEmpty = document.querySelector("#button-empty");
 const buttonStart = document.querySelector("#button-start");

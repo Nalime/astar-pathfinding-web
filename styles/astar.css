@@ -12,6 +12,10 @@ body {
     overflow: hidden;
 }
 
+canvas {
+    position: absolute;
+}
+
 #bottom {
     position: absolute;
     bottom: 0;
