@@ -24,10 +24,10 @@ let gridHeight = 50;
 let gridEmptyColor = "#EEE";
 let gridWallColor = "#333";
 let gridOpenColor = "#0C0";
-let gridClosedColor = "#E00";
-let gridStartColor = "#0AC";
+let gridClosedColor = "#600";
+let gridStartColor = "#5AC";
 let gridEndColor = "#EA0";
-let gridPathColor = "#C0C";
+let gridPathColor = "#E6E";
 let grid = [];
 let isButtonDown = false;
 let pathFindLoopSpeed = 100;
@@ -209,8 +209,10 @@ async function runAstar() {
     function drawPath() {
         p = end;
         while (p != -1) {
-            pp = twoDimensionify(p);
-            drawSquare(pp[0], pp[1], gridPathColor);
+            if (p != start && p != end) {
+                pp = twoDimensionify(p);
+                drawSquare(pp[0], pp[1], gridPathColor);
+            }
             p = origin[p];
         }
     }
