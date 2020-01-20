@@ -23,11 +23,14 @@ let gridWidth = 50;
 let gridHeight = 50;
 let gridEmptyColor = "#EEE";
 let gridWallColor = "#333";
-let gridStartColor = "#0E0";
-let gridEndColor = "#E00";
+let gridOpenColor = "#0C0";
+let gridClosedColor = "#E00";
+let gridStartColor = "#0AC";
+let gridEndColor = "#EA0";
+let gridPathColor = "#C0C";
 let grid = [];
 let isButtonDown = false;
-let pathFindLoopSpeed = 20;
+let pathFindLoopSpeed = 100;
 
 setBoardSize(gridWidth, gridHeight)
 
@@ -37,6 +40,11 @@ document.addEventListener("mouseup", onMouseUp, false);
 document.addEventListener("touchend", onMouseUp, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("touchmove", onMouseMove, false);
+
+// https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleep
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function drawSquare(x, y, colorHexCode) {
     ctx.fillStyle = colorHexCode;
@@ -125,28 +133,17 @@ function getPointerPosition(x, y) {
 }
 
 function inBounds(x, y) {
-    return x > -1 && x < gridWidth && y > -1 && y < gridHeight;
+    return x > -1 && x < gridWidth
+        && y > -1 && y < gridHeight;
 }
 
-function getGridDistance(x1, y1, x2, y2) {
-    xd = Math.abs(x2 - x1);
-    yd = Math.abs(y2 - y1);
+function getGridDistance(index1, index2) {
+    p1 = twoDimensionify(index1);
+    p2 = twoDimensionify(index2);
+    xd = Math.abs(p2[0] - p1[0]);
+    yd = Math.abs(p2[1] - p1[1]);
     diag = Math.min(xd, yd);
-    return diag * (Math.sqrt(2) - 1) + Math.max(xd, yd);
-}
-
-function getNeighbour(index) {
-    p = twoDimensionify(index);
-    li = [];
-    for (let i = -1; i < 2; i++) {
-        for (let j = -1; j < 2; j++) {
-            if (i == 0 && j == 0)
-                continue;
-            if (inBounds(p[0] + i, p[1] + j))
-                li.push(flatten(p[0] + i, p[1] + j));
-        }
-    }
-    return li;
+    return diag * 4142 + Math.max(xd, yd) * 10000;
 }
 
 async function runAstar() {
@@ -162,20 +159,99 @@ async function runAstar() {
         return;
     }
 
-    open = [start];
-    closed = [];
+    let openSet = [start];
+    let closedSet = [];
 
-    g_score = [];
-    h_score = [];
-    f_score = [];
+    let g = [];
+    let h = [];
+    let f = [];
+    let origin = [];
+    g[start] = 0;
+    h[start] = getGridDistance(start, end);
+    f[start] = h[start];
+    origin[start] = -1;
 
-    // while (open.length != 0) {
-    //     cur = [-1, -1];
-    //     lowest = 0;
-    //     for (let i in open) {
+    function findLowestF() {
+        let indexes = [];
+        let lowest = -1;
+        for (const i of openSet) {
+            if (f[i] < lowest || lowest == -1) {
+                indexes = [i];
+                lowest = f[i];
+            } else if (f[i] == lowest)
+                indexes.push(i);
+        }
+        let index = -1;
+        lowest = -1;
+        for (const i of indexes) {
+            if (h[i] < lowest || lowest == -1) {
+                index = i;
+                lowest = h[i];
+            }
+        }
+        return index;
+    }
 
-    //     }
-    // }
+    function getNeighbour(index) {
+        p = twoDimensionify(index);
+        li = [];
+        for (let i = -1; i < 2; i++) {
+            for (let j = -1; j < 2; j++) {
+                if (i == 0 && j == 0)
+                    continue;
+                if (inBounds(p[0] + i, p[1] + j))
+                    li.push(flatten(p[0] + i, p[1] + j));
+            }
+        }
+        return li;
+    }
+
+    function drawPath() {
+        p = end;
+        while (p != -1) {
+            pp = twoDimensionify(p);
+            drawSquare(pp[0], pp[1], gridPathColor);
+            p = origin[p];
+        }
+    }
+
+    while (openSet.length != 0) {
+        let cur = findLowestF();
+
+        if (cur == end) {
+            drawPath();
+            return;
+        }
+
+        // removes cur from openSet
+        openSet.splice(openSet.indexOf(cur), 1);
+
+        closedSet.push(cur);
+        if (cur != start) {
+            let pCur = twoDimensionify(cur);
+            drawSquare(pCur[0], pCur[1], gridClosedColor);
+        }
+
+        for (const i of getNeighbour(cur)) {
+            if (grid[i] == 1 || closedSet.indexOf(i) != -1)
+                continue;
+            gTemp = g[cur] + getGridDistance(cur, i);
+
+            inOpenSet = openSet.indexOf(i) != -1;
+            if (!inOpenSet || gTemp < g[i]) {
+                origin[i] = cur;
+                g[i] = gTemp;
+                h[i] = getGridDistance(i, end);
+                f[i] = g[i] + h[i];
+                if (i != end && !inOpenSet) {
+                    let pi = twoDimensionify(i);
+                    drawSquare(pi[0], pi[1], gridOpenColor);
+                }
+                openSet.push(i);
+            }
+        }
+        await sleep(1000 / pathFindLoopSpeed);
+    }
 }
 
 function setGridOnPointer(x, y) {
